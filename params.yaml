@@ -1,0 +1,11 @@
+
+data_ingestion:
+  test_size: 0.4
+  
+feature_engg:
+  max_features: 1500
+  
+
+modelling:
+  n_estimators: 110
+  max_depth: 30
