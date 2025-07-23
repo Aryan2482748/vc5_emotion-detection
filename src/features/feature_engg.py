@@ -4,7 +4,7 @@ import os
 import yaml
 import logging
 from typing import Tuple
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Configure logging
 logging.basicConfig(
@@ -35,28 +35,28 @@ def load_data(train_path: str, test_path: str) -> Tuple[pd.DataFrame, pd.DataFra
         logging.error(f"Failed to load data: {e}")
         raise
 
-def vectorize_text(X_train: np.ndarray, X_test: np.ndarray, max_features: int) -> Tuple[np.ndarray, np.ndarray, CountVectorizer]:
-    """Vectorize text data using Bag-of-Words."""
+def vectorize_text(X_train: np.ndarray, X_test: np.ndarray, max_features: int) -> Tuple[np.ndarray, np.ndarray, TfidfVectorizer]:
+    """Vectorize text data using TFIDF."""
     try:
-        vectorizer = CountVectorizer(max_features=max_features)
-        X_train_bow = vectorizer.fit_transform(X_train)
-        X_test_bow = vectorizer.transform(X_test)
-        logging.info("Text data vectorized using Bag-of-Words.")
-        return X_train_bow, X_test_bow, vectorizer
+        vectorizer = TfidfVectorizer(max_features=max_features)
+        X_train_tfidf  = vectorizer.fit_transform(X_train)
+        X_test_tfidf = vectorizer.transform(X_test)
+        logging.info("Text data vectorized using TFIDF.")
+        return X_train_tfidf, X_test_tfidf, vectorizer
     except Exception as e:
         logging.error(f"Vectorization failed: {e}")
         raise
 
-def save_features(X_train_bow: np.ndarray, y_train: np.ndarray, X_test_bow: np.ndarray, y_test: np.ndarray, output_dir: str) -> None:
+def save_features(X_train_tfidf: np.ndarray, y_train: np.ndarray, X_test_tfidf: np.ndarray, y_test: np.ndarray, output_dir: str) -> None:
     """Save feature-engineered train and test data to CSV files."""
     try:
         os.makedirs(output_dir, exist_ok=True)
-        train_df = pd.DataFrame(X_train_bow.toarray())
+        train_df = pd.DataFrame(X_train_tfidf.toarray())
         train_df['sentiment'] = y_train
-        test_df = pd.DataFrame(X_test_bow.toarray())
+        test_df = pd.DataFrame(X_test_tfidf.toarray())
         test_df['sentiment'] = y_test
-        train_df.to_csv(os.path.join(output_dir, "train_bow.csv"), index=False)
-        test_df.to_csv(os.path.join(output_dir, "test_bow.csv"), index=False)
+        train_df.to_csv(os.path.join(output_dir, "train_tfidf.csv"), index=False)
+        test_df.to_csv(os.path.join(output_dir, "test_tfidf.csv"), index=False)
         logging.info(f"Feature data saved to {output_dir}")
     except Exception as e:
         logging.error(f"Failed to save feature data: {e}")
@@ -72,8 +72,8 @@ def main() -> None:
         y_train = train_data['sentiment'].values
         X_test = test_data['content'].values
         y_test = test_data['sentiment'].values
-        X_train_bow, X_test_bow, _ = vectorize_text(X_train, X_test, max_features)
-        save_features(X_train_bow, y_train, X_test_bow, y_test, "data/interim")
+        X_train_tfidf, X_test_tfidf, _ = vectorize_text(X_train, X_test, max_features)
+        save_features(X_train_tfidf, y_train, X_test_tfidf, y_test, "data/interim")
         logging.info("Feature engineering pipeline completed successfully.")
     except Exception as e:
         logging.critical(f"Feature engineering pipeline failed: {e}")
